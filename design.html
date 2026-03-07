@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE LANDLORD</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night: #0d0f1a;
+    --brick: #3a2218;
+    --brick-dark: #251510;
+    --brick-mortar: #1e1812;
+    --window-off: #1a1e2e;
+    --window-warm: #e8a832;
+    --window-cool: #7ab3d4;
+    --window-tv: #5b8fd4;
+    --amber: #d4882a;
+    --cream: #f0e4c0;
+    --muted: #7a6e5c;
+    --red-dim: #8b2a2a;
+    --street: #151820;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #060708;
+    font-family: 'VT323', monospace;
+    color: var(--cream);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    cursor: default;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── GAME CANVAS: fixed 1080×700 design, scaled to fit viewport ── */
+  #game-canvas {
+    position: relative;
+    width: 1080px;
+    height: 700px;
+    transform-origin: center center;
+    flex-shrink: 0;
+  }
+
+  /* ── SKY ── */
+  #scene {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  #sky {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% -10%, #1a2240 0%, #0d0f1a 60%);
+  }
+
+  /* ── STARS ── */
+  .star {
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle var(--d, 3s) ease-in-out infinite var(--delay, 0s);
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: var(--dim, 0.3); }
+    50% { opacity: var(--bright, 0.9); }
+  }
+
+  /* ── RAIN ── */
+  #rain-canvas {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 20;
+    opacity: 0.35;
+  }
+
+  /* ── BUILDING ── */
+  #building-wrap {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 0;
+  }
+
+  /* Roof / rooftop details */
+  .rooftop {
+    width: 620px;
+    height: 28px;
+    background: var(--brick-dark);
+    position: relative;
+    image-rendering: pixelated;
+    border-top: 3px solid #2a1f14;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .rooftop::before {
+    content: '';
+    position: absolute;
+    top: -14px;
+    left: 40px;
+    right: 40px;
+    height: 14px;
+    background: var(--brick-dark);
+    border-top: 3px solid #2a1f14;
+  }
+  .water-tower {
+    position: absolute;
+    right: 80px;
+    top: -68px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .wt-top {
+    width: 36px;
+    height: 12px;
+    background: #1e1510;
+    clip-path: polygon(0% 100%, 50% 0%, 100% 100%);
+  }
+  .wt-body {
+    width: 40px;
+    height: 36px;
+    background: #241a10;
+    border-left: 2px solid #1a1008;
+    border-right: 2px solid #1a1008;
+  }
+  .wt-legs {
+    width: 44px;
+    height: 20px;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 2px;
+  }
+  .wt-leg { width: 3px; height: 100%; background: #1a1008; }
+  
+  .hvac {
+    position: absolute;
+    left: 70px;
+    top: -20px;
+    width: 28px;
+    height: 16px;
+    background: #1c1812;
+    border: 2px solid #141210;
+  }
+  .antenna {
+    position: absolute;
+    left: 130px;
+    top: -30px;
+    width: 2px;
+    height: 30px;
+    background: #1a1810;
+  }
+  .antenna::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -6px;
+    width: 14px;
+    height: 2px;
+    background: #1a1810;
+  }
+
+  /* Main building body */
+  .building {
+    width: 620px;
+    background: var(--brick);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+    border-left: 4px solid var(--brick-dark);
+    border-right: 4px solid var(--brick-dark);
+  }
+
+  /* Brick texture via repeating-linear-gradient */
+  .building::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 11px,
+        rgba(0,0,0,0.25) 11px,
+        rgba(0,0,0,0.25) 13px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 28px,
+        rgba(0,0,0,0.15) 28px,
+        rgba(0,0,0,0.15) 30px
+      );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Floor rows */
+  .floor {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    padding: 14px 24px;
+    position: relative;
+    z-index: 2;
+  }
+  .floor:not(:last-child) {
+    border-bottom: 2px solid rgba(0,0,0,0.3);
+  }
+
+  /* Windows */
+  .window {
+    width: 64px;
+    height: 72px;
+    background: var(--window-off);
+    border: 3px solid #1a140c;
+    position: relative;
+    overflow: hidden;
+    image-rendering: pixelated;
+    cursor: pointer;
+    transition: filter 0.3s;
+  }
+  .window:hover { filter: brightness(1.2); }
+
+  /* Window frame divider */
+  .window::before {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 50%;
+    width: 2px;
+    background: rgba(0,0,0,0.4);
+    z-index: 3;
+  }
+  .window::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    top: 50%;
+    height: 2px;
+    background: rgba(0,0,0,0.4);
+    z-index: 3;
+  }
+
+  /* Lit window states */
+  .window.warm {
+    background: var(--window-warm);
+    box-shadow: 0 0 12px 3px rgba(232, 168, 50, 0.4), inset 0 0 20px rgba(255,200,80,0.3);
+  }
+  .window.cool {
+    background: var(--window-cool);
+    box-shadow: 0 0 10px 2px rgba(122,179,212,0.3), inset 0 0 16px rgba(150,200,240,0.2);
+  }
+  .window.tv {
+    background: var(--window-tv);
+    animation: tv-flicker 0.12s steps(1) infinite;
+  }
+  .window.red {
+    background: #6b1515;
+    box-shadow: 0 0 8px 2px rgba(150,30,30,0.3);
+  }
+  .window.dark { background: #0e1018; }
+
+  @keyframes tv-flicker {
+    0%   { background: #4a7cbf; }
+    25%  { background: #6696d8; }
+    50%  { background: #3a6aaa; }
+    75%  { background: #5b8fd4; }
+    100% { background: #4a7cbf; }
+  }
+
+  /* Silhouettes in windows */
+  .sil {
+    position: absolute;
+    z-index: 4;
+    bottom: 8px;
+  }
+  .sil-person {
+    left: 10px;
+    width: 10px;
+    height: 28px;
+    background: rgba(0,0,0,0.5);
+    clip-path: polygon(20% 0%, 80% 0%, 100% 40%, 70% 40%, 70% 100%, 30% 100%, 30% 40%, 0% 40%);
+  }
+  .sil-cat {
+    right: 8px;
+    bottom: 6px;
+    width: 16px;
+    height: 10px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 50% 50% 0 0;
+  }
+  .sil-cat::before {
+    content:'';
+    position: absolute;
+    top: -5px; left: 1px;
+    width: 4px; height: 6px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 50% 50% 0 0;
+  }
+  .sil-cat::after {
+    content:'';
+    position: absolute;
+    top: -5px; left: 8px;
+    width: 4px; height: 6px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 50% 50% 0 0;
+  }
+
+  .blinds {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    background: repeating-linear-gradient(
+      180deg,
+      rgba(0,0,0,0.35) 0px,
+      rgba(0,0,0,0.35) 4px,
+      transparent 4px,
+      transparent 8px
+    );
+  }
+
+  /* Unit number labels */
+  .unit-label {
+    position: absolute;
+    bottom: 3px;
+    right: 5px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    color: rgba(0,0,0,0.4);
+    z-index: 10;
+  }
+
+  /* Door/entrance */
+  .entrance {
+    width: 620px;
+    height: 48px;
+    background: var(--brick-dark);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 0;
+    position: relative;
+    border-left: 4px solid #1a0f08;
+    border-right: 4px solid #1a0f08;
+    z-index: 10;
+  }
+  .door-arch {
+    width: 56px;
+    height: 46px;
+    background: #080a12;
+    border-radius: 28px 28px 0 0;
+    border: 3px solid #100c08;
+    border-bottom: none;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+  .door-light {
+    position: absolute;
+    top: -8px;
+    width: 20px;
+    height: 20px;
+    background: radial-gradient(circle, rgba(255,180,60,0.8) 0%, transparent 70%);
+    animation: lamp-pulse 4s ease-in-out infinite;
+  }
+  @keyframes lamp-pulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+  }
+  .door-steps {
+    width: 80px;
+    height: 10px;
+    background: #1a1710;
+    border-top: 2px solid #2a2218;
+    position: absolute;
+    bottom: -10px;
+  }
+
+  /* Street */
+  .street {
+    width: 100%;
+    height: 80px;
+    background: var(--street);
+    position: relative;
+    border-top: 3px solid #0e1018;
+  }
+  .street::after {
+    content: '';
+    position: absolute;
+    top: 30px;
+    left: 0; right: 0;
+    height: 2px;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent 0, transparent 30px,
+      rgba(255,220,100,0.15) 30px, rgba(255,220,100,0.15) 60px
+    );
+  }
+
+  /* Streetlamp */
+  .lamp-post {
+    position: absolute;
+    bottom: 0;
+  }
+  .lamp-pole { width: 3px; background: #1a1810; }
+  .lamp-head {
+    width: 20px;
+    height: 8px;
+    background: #1e1c14;
+    border-radius: 3px 3px 0 0;
+    position: relative;
+    margin-left: -9px;
+  }
+  .lamp-head::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 10px;
+    background: radial-gradient(circle, rgba(255,200,80,0.9) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .lamp-glow {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 80px;
+    background: radial-gradient(ellipse 50% 40% at 50% 0%, rgba(255,180,50,0.06) 0%, transparent 100%);
+    pointer-events: none;
+  }
+
+  /* ── TITLE UI ── */
+  #title-ui {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    padding: 28px 40px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    pointer-events: none;
+  }
+
+  .game-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(20px, 3vw, 32px);
+    color: var(--cream);
+    text-shadow: 3px 3px 0 #5a3a10, 6px 6px 0 rgba(0,0,0,0.5);
+    letter-spacing: 2px;
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+  .game-subtitle {
+    font-family: 'VT323', monospace;
+    font-size: clamp(16px, 2vw, 22px);
+    color: var(--amber);
+    letter-spacing: 3px;
+    margin-bottom: 18px;
+    text-transform: uppercase;
+  }
+  .game-tagline {
+    font-family: 'VT323', monospace;
+    font-size: clamp(14px, 1.6vw, 18px);
+    color: var(--muted);
+    max-width: 360px;
+    line-height: 1.6;
+  }
+
+  /* Right side: building name plate */
+  #nameplate {
+    position: absolute;
+    top: 28px;
+    right: 40px;
+    z-index: 30;
+    text-align: right;
+    pointer-events: none;
+  }
+  .building-name {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .address {
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    color: rgba(120,110,90,0.7);
+  }
+
+  /* ── TICKER ── */
+  #ticker {
+    position: absolute;
+    bottom: 0;
+    left: 0; right: 0;
+    z-index: 40;
+    background: rgba(8,9,16,0.92);
+    border-top: 2px solid #2a2010;
+    padding: 8px 0;
+    overflow: hidden;
+  }
+  #ticker-inner {
+    display: inline-block;
+    white-space: nowrap;
+    animation: ticker-scroll 40s linear infinite;
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    color: var(--amber);
+    padding-left: 100%;
+  }
+  .tick-sep {
+    color: var(--muted);
+    margin: 0 24px;
+  }
+  .tick-unit {
+    color: var(--cream);
+    opacity: 0.6;
+  }
+  @keyframes ticker-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100%); }
+  }
+
+  /* ── SCANLINES ── */
+  #scanlines {
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.07) 2px,
+      rgba(0,0,0,0.07) 4px
+    );
+    pointer-events: none;
+  }
+
+  /* ── VIGNETTE ── */
+  #vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 45;
+    background: radial-gradient(ellipse 80% 80% at 50% 50%, transparent 50%, rgba(0,0,0,0.7) 100%);
+    pointer-events: none;
+  }
+
+  /* ── SIDEBAR STATUS ── */
+  #status-panel {
+    position: absolute;
+    left: 40px;
+    bottom: 100px;
+    z-index: 35;
+    pointer-events: none;
+  }
+  .stat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+  }
+  .stat-label { color: var(--muted); width: 90px; }
+  .stat-bar {
+    width: 100px;
+    height: 8px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-fill {
+    height: 100%;
+    transition: width 1s;
+  }
+  .stat-fill.green  { background: #4a8a4a; }
+  .stat-fill.amber  { background: var(--amber); }
+  .stat-fill.red    { background: #8b2a2a; }
+  .stat-val { color: var(--cream); font-size: 16px; opacity: 0.7; }
+
+  /* ── RIGHT PANEL: NOTICE ── */
+  #notice-panel {
+    position: absolute;
+    right: 40px;
+    bottom: 100px;
+    z-index: 35;
+    width: 200px;
+    background: rgba(8,9,16,0.85);
+    border: 1px solid #2a2010;
+    padding: 14px;
+    pointer-events: none;
+  }
+  .notice-header {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: var(--amber);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(210,136,42,0.3);
+    padding-bottom: 6px;
+  }
+  .notice-item {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--cream);
+    opacity: 0.75;
+    margin-bottom: 8px;
+    line-height: 1.3;
+    padding-left: 8px;
+    border-left: 2px solid;
+  }
+  .notice-item.overdue { border-color: var(--red-dim); }
+  .notice-item.event   { border-color: var(--amber); }
+  .notice-item.neutral { border-color: var(--muted); }
+
+  /* ── DAY COUNTER ── */
+  #day-counter {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -200%);
+    z-index: 35;
+    text-align: center;
+    pointer-events: none;
+  }
+  .day-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    margin-bottom: 2px;
+  }
+  .day-num {
+    font-family: 'VT323', monospace;
+    font-size: 48px;
+    color: var(--cream);
+    text-shadow: 0 0 20px rgba(240,228,192,0.2);
+    line-height: 1;
+  }
+  .month-label {
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    color: var(--muted);
+    letter-spacing: 3px;
+  }
+
+  /* Neighbor buildings (sides) */
+  .neighbor {
+    position: absolute;
+    bottom: 80px;
+    z-index: 5;
+    background: #1a110a;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .neighbor.left { left: 0; width: 110px; }
+  .neighbor.right { right: 0; width: 90px; }
+  .nb-floor {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(0,0,0,0.4);
+  }
+  .nb-window {
+    width: 24px;
+    height: 28px;
+    background: #0e1018;
+    border: 2px solid #100c08;
+  }
+  .nb-window.warm { background: rgba(232,168,50,0.6); }
+  .nb-window.dim  { background: rgba(50,60,100,0.4); }
+
+  /* Puddle reflections on street */
+  .puddle {
+    position: absolute;
+    bottom: 20px;
+    width: 60px;
+    height: 10px;
+    background: radial-gradient(ellipse, rgba(100,130,200,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: puddle-shimmer 3s ease-in-out infinite;
+  }
+  @keyframes puddle-shimmer {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+  }
+</style>
+</head>
+<body>
+<div id="game-canvas">
+<div id="scene">
+  <div id="sky"></div>
+  <canvas id="rain-canvas"></canvas>
+
+  <!-- Left neighbor building -->
+  <div class="neighbor left" style="height:200px;">
+    <div class="nb-floor"><div class="nb-window warm"></div><div class="nb-window"></div></div>
+    <div class="nb-floor"><div class="nb-window"></div><div class="nb-window dim"></div></div>
+    <div class="nb-floor"><div class="nb-window warm"></div><div class="nb-window warm"></div></div>
+    <div class="nb-floor"><div class="nb-window"></div><div class="nb-window"></div></div>
+    <div class="nb-floor"><div class="nb-window dim"></div><div class="nb-window"></div></div>
+  </div>
+
+  <!-- Right neighbor building -->
+  <div class="neighbor right" style="height:160px;">
+    <div class="nb-floor"><div class="nb-window warm"></div><div class="nb-window"></div></div>
+    <div class="nb-floor"><div class="nb-window"></div><div class="nb-window warm"></div></div>
+    <div class="nb-floor"><div class="nb-window dim"></div><div class="nb-window"></div></div>
+    <div class="nb-floor"><div class="nb-window"></div><div class="nb-window dim"></div></div>
+  </div>
+
+  <!-- Main building -->
+  <div id="building-wrap">
+
+    <!-- Rooftop -->
+    <div class="rooftop">
+      <div class="water-tower">
+        <div class="wt-top"></div>
+        <div class="wt-body"></div>
+        <div class="wt-legs">
+          <div class="wt-leg"></div>
+          <div class="wt-leg"></div>
+          <div class="wt-leg"></div>
+        </div>
+      </div>
+      <div class="hvac"></div>
+      <div class="antenna"></div>
+    </div>
+
+    <!-- Building body -->
+    <div class="building">
+      <!-- Floor 4 (top) - units 7 & 8 -->
+      <div class="floor">
+        <div class="window warm" id="w7" title="Unit 7">
+          <div class="sil"><div class="sil-person"></div></div>
+          <span class="unit-label">7</span>
+        </div>
+        <div class="window tv" id="w8" title="Unit 8">
+          <div class="blinds"></div>
+          <span class="unit-label">8</span>
+        </div>
+        <div class="window dark" id="w-blank1"></div>
+        <div class="window cool" id="w-extra">
+          <span class="unit-label">SUPER</span>
+        </div>
+      </div>
+      <!-- Floor 3 - units 5 & 6 -->
+      <div class="floor">
+        <div class="window cool" id="w5" title="Unit 5">
+          <div class="sil"><div class="sil-cat"></div></div>
+          <span class="unit-label">5</span>
+        </div>
+        <div class="window warm" id="w6" title="Unit 6">
+          <span class="unit-label">6</span>
+        </div>
+        <div class="window red" id="w4" title="Unit 4">
+          <div class="blinds"></div>
+          <span class="unit-label">4</span>
+        </div>
+        <div class="window dark" id="w-blank2"></div>
+      </div>
+      <!-- Floor 2 - units 3 & 4 -->
+      <div class="floor">
+        <div class="window dark" id="w3" title="Unit 3">
+          <span class="unit-label">3</span>
+        </div>
+        <div class="window warm" id="w2" title="Unit 2">
+          <div class="sil"><div class="sil-person"></div></div>
+          <span class="unit-label">2</span>
+        </div>
+        <div class="window tv" id="w1" title="Unit 1">
+          <span class="unit-label">1</span>
+        </div>
+        <div class="window cool" id="w-blank3">
+          <div class="blinds"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Entrance -->
+    <div class="entrance">
+      <div style="position:relative">
+        <div class="door-arch">
+          <div class="door-light"></div>
+        </div>
+        <div class="door-steps"></div>
+      </div>
+    </div>
+
+    <!-- Street -->
+    <div class="street">
+      <!-- Streetlamp left -->
+      <div class="lamp-post" style="left:60px; bottom:0;">
+        <div class="lamp-head"></div>
+        <div class="lamp-pole" style="height:60px;"></div>
+        <div class="lamp-glow"></div>
+      </div>
+      <!-- Streetlamp right -->
+      <div class="lamp-post" style="right:60px; bottom:0;">
+        <div class="lamp-head"></div>
+        <div class="lamp-pole" style="height:60px;"></div>
+        <div class="lamp-glow"></div>
+      </div>
+      <!-- Puddles -->
+      <div class="puddle" style="left:100px;"></div>
+      <div class="puddle" style="left:300px; animation-delay:1.2s;"></div>
+      <div class="puddle" style="right:120px; animation-delay:0.6s;"></div>
+    </div>
+
+  </div><!-- /building-wrap -->
+
+</div><!-- /scene -->
+
+<!-- Stars -->
+<div id="stars-container"></div>
+
+<!-- Title UI -->
+<div id="title-ui">
+  <div class="game-title">THE<br>LANDLORD</div>
+  <div class="game-subtitle">a building sim</div>
+  <div class="game-tagline">Eight units.<br>Eight lives.<br>Zero easy answers.</div>
+</div>
+
+<div id="nameplate">
+  <div class="building-name">Waverly Arms</div>
+  <div class="address">412 Dunmore St.</div>
+</div>
+
+<!-- Day counter -->
+<div id="day-counter">
+  <div class="day-label">MONTH</div>
+  <div class="day-num">3</div>
+  <div class="month-label">DAY 12</div>
+</div>
+
+<!-- Status panel -->
+<div id="status-panel">
+  <div class="stat-row">
+    <span class="stat-label">OCCUPANCY</span>
+    <div class="stat-bar"><div class="stat-fill green" style="width:88%"></div></div>
+    <span class="stat-val">7/8</span>
+  </div>
+  <div class="stat-row">
+    <span class="stat-label">VIBE</span>
+    <div class="stat-bar"><div class="stat-fill amber" style="width:52%"></div></div>
+    <span class="stat-val">52</span>
+  </div>
+  <div class="stat-row">
+    <span class="stat-label">RENT DUE</span>
+    <div class="stat-bar"><div class="stat-fill red" style="width:30%"></div></div>
+    <span class="stat-val">3</span>
+  </div>
+</div>
+
+<!-- Notice panel -->
+<div id="notice-panel">
+  <div class="notice-header">▌PENDING MATTERS</div>
+  <div class="notice-item overdue">Unit 2 — rent 9 days late</div>
+  <div class="notice-item event">Unit 4 — noise complaint × 2</div>
+  <div class="notice-item event">New applicant — Rm. 3</div>
+  <div class="notice-item neutral">Boiler inspection due</div>
+</div>
+
+<!-- Ticker -->
+<div id="ticker">
+  <div id="ticker-inner">
+    <span class="tick-unit">[Unit 6]</span> Something's been dripping from their ceiling for three weeks now. <span class="tick-sep">◆</span>
+    <span class="tick-unit">[Unit 2]</span> She came by the office again. The reason changes every time. <span class="tick-sep">◆</span>
+    <span class="tick-unit">[Unit 4]</span> Packages arriving at odd hours. Different names on all of them. <span class="tick-sep">◆</span>
+    <span class="tick-unit">[Unit 7]</span> He asked if you'd seen his cat. The door to Unit 8 was open. <span class="tick-sep">◆</span>
+    <span class="tick-unit">[Unit 5 &amp; 3]</span> They haven't spoken since the hallway incident. <span class="tick-sep">◆</span>
+    <span class="tick-unit">[Applicant]</span> References check out. The last landlord didn't pick up. <span class="tick-sep">◆</span>
+    <span class="tick-unit">[Unit 1]</span> The TV never turns off. You've never actually seen him leave. <span class="tick-sep">◆</span>
+  </div>
+</div>
+
+<div id="scanlines"></div>
+<div id="vignette"></div>
+</div><!-- /game-canvas -->
+
+<script>
+// ── Scale-to-fit ──
+const DESIGN_W = 1080;
+const DESIGN_H = 700;
+const gameCanvas = document.getElementById('game-canvas');
+
+function scaleCanvas() {
+  const scaleX = window.innerWidth  / DESIGN_W;
+  const scaleY = window.innerHeight / DESIGN_H;
+  const scale  = Math.min(scaleX, scaleY);
+  gameCanvas.style.transform = `scale(${scale})`;
+}
+scaleCanvas();
+window.addEventListener('resize', scaleCanvas);
+
+// ── Stars ──
+const starsContainer = document.getElementById('stars-container');
+for (let i = 0; i < 80; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  const size = Math.random() * 1.5 + 0.5;
+  s.style.cssText = `
+    width: ${size}px; height: ${size}px;
+    top: ${Math.random() * 55}%; left: ${Math.random() * 100}%;
+    --dim: ${Math.random() * 0.3 + 0.1};
+    --bright: ${Math.random() * 0.5 + 0.4};
+    --d: ${Math.random() * 4 + 2}s;
+    --delay: ${-Math.random() * 5}s;
+    position: absolute; z-index: 1;
+  `;
+  document.getElementById('sky').appendChild(s);
+}
+
+// ── Rain ──
+const canvas = document.getElementById('rain-canvas');
+const ctx = canvas.getContext('2d');
+let drops = [];
+function resizeCanvas() {
+  canvas.width = DESIGN_W;
+  canvas.height = DESIGN_H;
+}
+resizeCanvas();
+
+function initRain() {
+  drops = [];
+  for (let i = 0; i < 120; i++) {
+    drops.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      len: Math.random() * 14 + 6,
+      speed: Math.random() * 8 + 6,
+      opacity: Math.random() * 0.4 + 0.1
+    });
+  }
+}
+initRain();
+
+function animateRain() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = 'rgba(180, 200, 230, 1)';
+  drops.forEach(d => {
+    ctx.globalAlpha = d.opacity;
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(d.x, d.y);
+    ctx.lineTo(d.x - d.len * 0.2, d.y + d.len);
+    ctx.stroke();
+    d.y += d.speed;
+    d.x -= d.speed * 0.2;
+    if (d.y > canvas.height + 20) {
+      d.y = -20;
+      d.x = Math.random() * canvas.width;
+    }
+  });
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(animateRain);
+}
+animateRain();
+
+// ── Window life simulation ──
+const windowIds = ['w1','w2','w3','w4','w5','w6','w7','w8'];
+const windowStates = {
+  w1: 'tv', w2: 'warm', w3: 'dark', w4: 'red',
+  w5: 'cool', w6: 'warm', w7: 'warm', w8: 'tv'
+};
+
+function flickerWindows() {
+  const id = windowIds[Math.floor(Math.random() * windowIds.length)];
+  if (id === 'w4') return; // unit 4 always stays suspicious red
+  const el = document.getElementById(id);
+  if (!el) return;
+  const states = ['warm', 'cool', 'tv', 'dark', 'dark'];
+  const next = states[Math.floor(Math.random() * states.length)];
+  // remove all state classes
+  el.classList.remove('warm','cool','tv','dark','red');
+  el.classList.add(next);
+  windowStates[id] = next;
+}
+
+setInterval(flickerWindows, 4200);
+setInterval(flickerWindows, 7800);
+setInterval(flickerWindows, 11300);
+
+// ── Hover tooltip on windows ──
+const unitDescriptions = {
+  w1: 'Unit 1 — D. Farrow\nRent: current\nTenancy: 4 years',
+  w2: 'Unit 2 — M. Osei\nRent: 9 days late\nTenancy: 8 months',
+  w3: 'Unit 3 — VACANT\n[Application pending]',
+  w4: 'Unit 4 — T. Voss\nRent: current\nTenancy: 2 years\n⚠ Complaints filed',
+  w5: 'Unit 5 — C. Park\nRent: current\nTenancy: 1 year',
+  w6: 'Unit 6 — R. & L. Nunes\nRent: current\nTenancy: 6 years',
+  w7: 'Unit 7 — H. Malone\nRent: current\nTenancy: 3 years',
+  w8: 'Unit 8 — A. Simic\nRent: 2 days late\nTenancy: 5 months',
+};
+
+// Simple tooltip
+const tooltip = document.createElement('div');
+tooltip.style.cssText = `
+  position: fixed; z-index: 100;
+  background: rgba(8,9,16,0.95);
+  border: 1px solid #2a2010;
+  padding: 10px 14px;
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  color: #f0e4c0;
+  pointer-events: none;
+  white-space: pre;
+  line-height: 1.6;
+  display: none;
+  letter-spacing: 1px;
+`;
+document.body.appendChild(tooltip);
+
+Object.keys(unitDescriptions).forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.pointerEvents = 'all';
+  el.addEventListener('mouseenter', e => {
+    tooltip.textContent = unitDescriptions[id];
+    tooltip.style.display = 'block';
+  });
+  el.addEventListener('mousemove', e => {
+    tooltip.style.left = (e.clientX + 14) + 'px';
+    tooltip.style.top = (e.clientY - 10) + 'px';
+  });
+  el.addEventListener('mouseleave', () => {
+    tooltip.style.display = 'none';
+  });
+});
+
+// ── Ambient window glow pulse on warm windows ──
+function pulseWarm() {
+  document.querySelectorAll('.window.warm').forEach(w => {
+    const intensity = 0.3 + Math.random() * 0.2;
+    w.style.boxShadow = `0 0 ${12 + Math.random()*6}px ${2 + Math.random()*2}px rgba(232,168,50,${intensity}), inset 0 0 20px rgba(255,200,80,0.3)`;
+  });
+}
+setInterval(pulseWarm, 1800);
+</script>
+</body>
+</html>

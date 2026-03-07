@@ -1,0 +1,74 @@
+
+You are the landlord of a small apartment building — eight units, eight tenants, all with lives that quietly spiral. Every few days a situation lands on your desk: a tenant hasn’t paid rent and has a reason, two neighbors are in a feud that’s escalating, someone’s running something suspicious out of unit 4, a new applicant wants to move in and something feels off. You read the situation, pick your response, and watch the building absorb the consequences — moods shift, relationships change, people leave or arrive, and the building’s overall vibe slowly rises or falls. There’s no winning, just managing — keeping enough people happy enough, long enough, while the building’s small dramas compound into something that feels like a real place with real people.​​​​​​​​​​​​​​​​
+
+
+===
+Start small, grow with success. No contest.
+Here’s why it maximizes fun:
+The first 10 minutes of any sim are the most exciting — everything is new, stakes feel real, you’re learning the systems. A fixed 8-unit building means you hit that ceiling fast and then it’s just maintenance. But if a good decision unlocks a new unit, a new tenant type, a new scenario category — every win expands the world. The building becoming more complex mirrors your growing understanding of it. That’s the Stardew/Slay the Spire feeling.
+It also solves a real 8B problem: scenario variety. Instead of front-loading 40 scenarios, you unlock them in tiers. Early game is simple — noise complaints, late rent. Mid game unlocks messier stuff — feuds, suspicious activity, health crises. Late game gets weird — a tenant who might be a cult leader, a unit that’s definitely being sublet illegally. The model only needs to handle the complexity the current tier demands.
+For 5 hours:
+Start with 3 units, 3 tenants, 8 scenarios. That’s a complete playable loop in hour 2. Growth mechanics are just a counter and an unlock condition — trivially simple to code. The content library I build now can be tiered so 8B always has exactly the right amount to work with.
+Small building, big ambitions, earnable complexity. Want me to start building?​​​​​​​​​​​​​​​​
+===
+
+
+The goal: Build a legendary building.
+Not profitable. Not full. Legendary — the kind of place people fight to get into, where the tenants form a real community, where the building has a reputation that precedes it. You start with a crumbling 3-unit walkup and a bad Yelp review. You end with a full building that has a soul.
+
+The four systems:
+XP — Reputation Points
+Every good decision earns rep. Helped a tenant through a hard month → +rep. Resolved a feud without losing either tenant → +rep. Bad decisions cost rep. Rep is the currency of everything.
+The grind
+Every few in-game days a situation demands your attention. You can’t skip it. You can’t pause the building. Ignore three situations → tenant leaves → unit sits empty → rep decays. The building always needs you.
+Unlocks
+Rep thresholds unlock tiers:
+	∙	100 rep → 4th unit opens, new tenant archetype available
+	∙	250 rep → 5th unit, mid-tier scenarios unlock
+	∙	500 rep → the weird stuff starts happening
+	∙	1000 rep → legendary status, game complete
+The goal in one sentence:
+Reach 1000 reputation before the building falls below 20% occupancy — because an empty building is a dead building, and a dead building is game over.
+
+That gives you a win condition, a lose condition, and meaningful tension on every single decision. Ready for me to start building?​​​​​​​​​​​​​​​​
+
+
+===
+You’re right to flag this. 20 hours requires genuine systemic depth. Let me be honest about what that actually demands.
+
+What creates 20 hours in games like The Sims:
+Not content volume. Interacting systems. The Sims is 200 hours because needs affect mood, mood affects relationships, relationships affect events, events affect needs — it’s a loop that generates itself. You need the same thing.
+
+The systems this game needs, fully designed:
+Tenant simulation (the core loop)
+Each tenant has 6 stats: happiness, finances, social, health, stability, suspicion. These decay and grow naturally every turn without your input. A tenant with low finances and low happiness will generate a crisis whether you intervene or not. You’re not managing events — you’re managing people.
+Relationship web
+Every tenant has a relationship score with every other tenant. These change based on proximity, events, and your decisions. Feuds compound. Friendships create unexpected alliances. A happy tight-knit group of tenants buffs each other’s happiness passively. This alone generates emergent drama for 10 hours.
+Tenant memory
+Every decision you make is remembered by the affected tenant and colors every future interaction with them. Evicted someone’s friend? Their friend in unit 2 is now cold toward you. This makes every decision feel consequential long-term.
+The building itself has stats
+Maintenance, safety, noise level, curb appeal. These decay without investment. Low maintenance triggers its own crisis events — pipe bursts, heating fails — that cascade into tenant unhappiness independent of anything else. You’re managing a living organism.
+Money
+Rent comes in monthly. Repairs cost money. Upgrades cost money. A vacant unit bleeds you. You can raise rent — but happiness drops and tenant stability drops. The financial pressure is constant and never fully solved.
+Tenant archetypes with hidden traits
+Each tenant has visible traits and one or two hidden ones you discover over time. The quiet accountant is actually a hoarder — you find out when neighbors complain. The friendly nurse works night shifts — explains the noise complaints. Hidden traits make tenants feel like real people you’re slowly getting to know.
+Applicant system
+When a unit opens you get 2-3 applicants with visible and partially hidden profiles. Picking the wrong tenant cascades problems for months. Picking the right one can stabilize a whole floor. This decision alone is 30 minutes of agonizing per vacancy.
+Scenario tiers that unlock genuine complexity
+	∙	Early: financial stress, noise, maintenance
+	∙	Mid: feuds, suspicious activity, health crises, relationship drama
+	∙	Late: organized crime, mental health crises, building code violations, media attention, a tenant who wants to buy the building
+The reputation economy
+Rep unlocks units but also unlocks tenant quality. High rep means better applicants — more stable, higher rent, more interesting. Low rep means desperate applicants — cheaper but volatile. This creates a meaningful skill curve.
+
+What this needs that 8B cannot improvise:
+	∙	~120 fully written scenarios across 4 tiers
+	∙	~30 tenant archetypes with full stat profiles and hidden traits
+	∙	~50 consequence narratives per scenario branch
+	∙	Full relationship event library (what happens when two tenants with high relationship score share a crisis)
+	∙	The financial model fully specced
+
+Honest assessment:
+This is a 200-hour game design job compressed into a framework. The 8B model on the plane codes the engine. But the content — the scenarios, the tenant writing, the consequence trees — that’s what makes it 20 hours, and that has to be written by me, now, before you board.
+I’d need probably 3-4 hours of generation to do this properly. The good news: it’s all JSON and prompt templates. Structured, not creative. I can do it fast.
+Do you want me to start? And if so — do you want to greenlight the full design above, or adjust anything before I lock it in?​​​​​​​​​​​​​​​​
