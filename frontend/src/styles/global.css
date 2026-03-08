@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
+
+:root {
+  --night: #0d0f1a;
+  --brick: #3a2218;
+  --brick-dark: #251510;
+  --brick-mortar: #1e1812;
+  --window-off: #1a1e2e;
+  --window-warm: #e8a832;
+  --window-cool: #7ab3d4;
+  --window-tv: #5b8fd4;
+  --amber: #d4882a;
+  --cream: #f0e4c0;
+  --muted: #7a6e5c;
+  --red-dim: #8b2a2a;
+  --street: #151820;
+  --green: #4a8a4a;
+  --panel-bg: rgba(8, 9, 16, 0.85);
+  --panel-border: #2a2010;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #060708;
+  font-family: 'VT323', monospace;
+  color: var(--cream);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button {
+  font-family: 'VT323', monospace;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
