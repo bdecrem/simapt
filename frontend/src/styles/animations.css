@@ -1,0 +1,42 @@
+@keyframes twinkle {
+  0%, 100% { opacity: var(--dim, 0.3); }
+  50% { opacity: var(--bright, 0.9); }
+}
+
+@keyframes tv-flicker {
+  0%   { background: #4a7cbf; }
+  25%  { background: #6696d8; }
+  50%  { background: #3a6aaa; }
+  75%  { background: #5b8fd4; }
+  100% { background: #4a7cbf; }
+}
+
+@keyframes lamp-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+@keyframes puddle-shimmer {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
