@@ -9,7 +9,7 @@ FLAVOR_TEMPLATE = """Generate atmospheric flavor text for this scenario.
 
 Building: The Bramble, Day {day}. Maintenance: {maintenance}%. {weather}.
 Tenant: {name}, {age}, {job}. Unit {unit}. Been here {days_stayed} days.
-Their mood: {"good" if happiness > 60 else "rough" if happiness < 30 else "neutral"}.
+Their mood: {mood}.
 Situation: {title} — {description}
 
 Write ONLY 1-2 sentences of atmospheric scene-setting. No dialogue. No action. Just atmosphere."""

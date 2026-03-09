@@ -24,6 +24,9 @@ async def generate_flavor_text(state: GameState, scenario: ActiveScenario) -> st
     if not tenant:
         return random.choice(FALLBACK_FLAVOR)
 
+    h = tenant.stats.happiness
+    mood = "good" if h > 60 else "rough" if h < 30 else "neutral"
+
     prompt = FLAVOR_TEMPLATE.format(
         day=state.day,
         maintenance=state.building.maintenance,
@@ -33,7 +36,7 @@ async def generate_flavor_text(state: GameState, scenario: ActiveScenario) -> st
         job=tenant.job,
         unit=tenant.unit + 1,
         days_stayed=tenant.days_stayed,
-        happiness=tenant.stats.happiness,
+        mood=mood,
         title=scenario.definition.title,
         description=scenario.description,
     )
