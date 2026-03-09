@@ -40,6 +40,12 @@
       items.push({ text: state.active_scenario.definition.title, type: 'event' });
     }
 
+    // Show last log entry on quiet days so the player knows the game advanced
+    if (items.length === 0 && state.log.length > 0) {
+      const last = state.log[state.log.length - 1];
+      items.push({ text: last.replace(/^Day \d+: /, ''), type: 'neutral' });
+    }
+
     if (items.length === 0) {
       items.push({ text: 'All quiet.', type: 'neutral' });
     }

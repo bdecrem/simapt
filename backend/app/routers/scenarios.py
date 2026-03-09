@@ -1,10 +1,11 @@
 """Scenario routes: make a choice."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
-from ..routers.game import get_game
+from ..dependencies import get_game_from_token
 from ..engine.scenarios import apply_choice
 from ..ai.generate import generate_narration
+from ..database import save_game
 
 router = APIRouter()
 
@@ -14,9 +15,9 @@ class ChoiceRequest(BaseModel):
 
 
 @router.post("/choose")
-async def choose(req: ChoiceRequest):
+async def choose(req: ChoiceRequest, game: tuple = Depends(get_game_from_token)):
     """Apply a scenario choice and get AI narration."""
-    state = get_game()
+    token, state = game
 
     if not state.active_scenario:
         raise HTTPException(status_code=400, detail="No active scenario")
@@ -30,6 +31,8 @@ async def choose(req: ChoiceRequest):
 
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
+
+    save_game(token, state)
 
     return {
         **state.model_dump(),

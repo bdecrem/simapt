@@ -1,7 +1,8 @@
 """Game routes: new game, get state, advance day."""
 
 import random
-from fastapi import APIRouter, HTTPException
+import uuid
+from fastapi import APIRouter, Depends
 from ..models.game import GameState
 from ..engine.tenants import make_tenant
 from ..engine.tick import advance_day
@@ -9,24 +10,16 @@ from ..engine.scenarios import try_queue_scenario
 from ..ai.generate import generate_flavor_text
 from ..config import STARTING_MONEY, STARTING_REP, STARTING_UNITS
 from ..data.archetypes import ARCHETYPES
+from ..database import save_game
+from ..dependencies import get_game_from_token
 
 router = APIRouter()
-
-# In-memory game store (single game for MVP)
-_game: GameState | None = None
-
-
-def get_game() -> GameState:
-    global _game
-    if _game is None:
-        raise HTTPException(status_code=404, detail="No active game. Start a new one.")
-    return _game
 
 
 @router.post("/new")
 async def new_game():
     """Create a new game with starting tenants."""
-    global _game
+    token = uuid.uuid4().hex[:24]
     state = GameState(
         money=STARTING_MONEY,
         rep=STARTING_REP,
@@ -45,21 +38,21 @@ async def new_game():
         state.units[i] = tenant.id
 
     state.log.append(f"Day 1: Welcome to The Bramble. {len(state.tenants)} tenants. ${state.money} in the bank.")
-    _game = state
-    return state.model_dump()
+    save_game(token, state)
+    return {"token": token, **state.model_dump()}
 
 
 @router.get("/state")
-async def get_state():
+async def get_state(game: tuple = Depends(get_game_from_token)):
     """Get current game state."""
-    state = get_game()
+    token, state = game
     return state.model_dump()
 
 
 @router.post("/advance")
-async def advance():
+async def advance(game: tuple = Depends(get_game_from_token)):
     """Advance the game by one day."""
-    state = get_game()
+    token, state = game
 
     if state.phase != "playing":
         return state.model_dump()
@@ -73,6 +66,8 @@ async def advance():
     if scenario:
         flavor_text = await generate_flavor_text(state, scenario)
         scenario.flavor_text = flavor_text
+
+    save_game(token, state)
 
     return {
         **state.model_dump(),

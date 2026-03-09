@@ -1,7 +1,9 @@
 <script>
   import { onMount } from 'svelte';
+  import { hasGame, clearGame } from '../../lib/api.js';
 
-  let { onstart } = $props();
+  let { onstart, oncontinue } = $props();
+  let savedGame = $state(hasGame());
   let stars = $state([]);
 
   onMount(() => {
@@ -36,7 +38,12 @@
     <h1 class="title">THE<br>BRAMBLE</h1>
     <p class="subtitle">A BUILDING SIM</p>
     <p class="tagline">Eight units. Eight lives. Zero easy answers.</p>
-    <button class="start-btn" onclick={onstart}>START GAME</button>
+    {#if savedGame}
+      <button class="start-btn" onclick={oncontinue}>CONTINUE</button>
+      <button class="start-btn secondary" onclick={() => { clearGame(); savedGame = false; }}>NEW GAME</button>
+    {:else}
+      <button class="start-btn" onclick={onstart}>START GAME</button>
+    {/if}
   </div>
 
   <div class="scanlines"></div>
@@ -115,6 +122,15 @@
     background: rgba(212, 136, 42, 0.25);
     box-shadow: 0 0 30px rgba(212, 136, 42, 0.3);
     transform: scale(1.05);
+  }
+  .start-btn.secondary {
+    margin-top: 12px;
+    font-size: 9px;
+    border-color: var(--muted);
+    opacity: 0.6;
+  }
+  .start-btn.secondary:hover {
+    opacity: 1;
   }
 
   .scanlines {

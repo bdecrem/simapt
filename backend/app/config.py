@@ -1,5 +1,7 @@
 import os
 
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./bramble.db")
+
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 AI_MODEL = "claude-haiku-4-5-20251001"
 AI_MAX_TOKENS = 120

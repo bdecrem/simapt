@@ -1,6 +1,6 @@
 <script>
   import { gameState, selectedUnit, showNarration, isLoading } from './lib/stores/game.js';
-  import { newGame, advanceDay, makeChoice } from './lib/api.js';
+  import { newGame, advanceDay, makeChoice, getState, clearGame } from './lib/api.js';
   import GameCanvas from './components/scene/GameCanvas.svelte';
   import ScenarioCard from './components/game/ScenarioCard.svelte';
   import NarrationOverlay from './components/game/NarrationOverlay.svelte';
@@ -9,6 +9,7 @@
   import MenuScreen from './components/game/MenuScreen.svelte';
 
   async function handleNewGame() {
+    clearGame();
     $isLoading = true;
     try {
       const state = await newGame();
@@ -19,12 +20,29 @@
     $isLoading = false;
   }
 
+  async function handleContinue() {
+    $isLoading = true;
+    try {
+      const state = await getState();
+      $gameState = { ...state, phase: state.phase || 'playing' };
+    } catch (e) {
+      console.error('Failed to load game:', e);
+      clearGame();
+    }
+    $isLoading = false;
+  }
+
+  let dayFlash = $state(false);
+
   async function handleAdvanceDay() {
     if ($gameState.active_scenario || $gameState.phase !== 'playing') return;
     $isLoading = true;
     try {
       const state = await advanceDay();
       $gameState = state;
+      // Brief flash to show day advanced
+      dayFlash = true;
+      setTimeout(() => dayFlash = false, 400);
     } catch (e) {
       console.error('Failed to advance day:', e);
     }
@@ -56,7 +74,7 @@
 </script>
 
 {#if $gameState.phase === 'menu'}
-  <MenuScreen onstart={handleNewGame} />
+  <MenuScreen onstart={handleNewGame} oncontinue={handleContinue} />
 {:else}
   <GameCanvas
     onadvanceday={handleAdvanceDay}
@@ -84,7 +102,26 @@
     />
   {/if}
 
+  {#if dayFlash}
+    <div class="day-flash"></div>
+  {/if}
+
   {#if $gameState.phase === 'won' || $gameState.phase === 'lost'}
     <EndScreen phase={$gameState.phase} onrestart={handleNewGame} />
   {/if}
 {/if}
+
+<style>
+  .day-flash {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(212, 136, 42, 0.08);
+    pointer-events: none;
+    animation: flash-fade 0.4s ease-out forwards;
+  }
+  @keyframes flash-fade {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+</style>
