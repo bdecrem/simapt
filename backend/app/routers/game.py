@@ -2,7 +2,8 @@
 
 import random
 import uuid
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from ..models.game import GameState
 from ..engine.tenants import make_tenant
 from ..engine.tick import advance_day
@@ -74,3 +75,31 @@ async def advance(game: tuple = Depends(get_game_from_token)):
         "day_log": day_log,
         "flavor_text": flavor_text,
     }
+
+
+class FixTaskRequest(BaseModel):
+    task_id: str
+
+
+@router.post("/fix-task")
+async def fix_task(req: FixTaskRequest, game: tuple = Depends(get_game_from_token)):
+    """Fix a maintenance task for rep and maintenance boost."""
+    token, state = game
+
+    task = next((t for t in state.maintenance_tasks if t.id == req.task_id), None)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    # Apply effects
+    state.money -= task.money_cost
+    state.rep += task.rep_reward
+    state.building.maintenance = min(100, state.building.maintenance + task.maint_reward)
+
+    # Remove the task
+    state.maintenance_tasks = [t for t in state.maintenance_tasks if t.id != req.task_id]
+
+    cost_str = f" (-${task.money_cost})" if task.money_cost > 0 else ""
+    state.log.append(f"Day {state.day}: Fixed {task.label.lower()}.{cost_str} +{task.rep_reward} rep.")
+
+    save_game(token, state)
+    return state.model_dump()

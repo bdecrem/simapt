@@ -94,6 +94,19 @@ class ActiveScenario(BaseModel):
     flavor_text: str = ""
 
 
+class MaintenanceTask(BaseModel):
+    id: str = Field(default_factory=lambda: uuid.uuid4().hex[:8])
+    kind: str
+    label: str
+    icon: str
+    x: float  # 0.0-1.0 relative position on building
+    y: float
+    rep_reward: int = 1
+    maint_reward: int = 2
+    money_cost: int = 0
+    spawned_day: int = 0
+
+
 class GameState(BaseModel):
     id: str = Field(default_factory=lambda: uuid.uuid4().hex[:12])
     day: int = 1
@@ -109,3 +122,4 @@ class GameState(BaseModel):
     log: list[str] = Field(default_factory=list)
     phase: Literal["playing", "won", "lost"] = "playing"
     next_scenario_day: int = 3
+    maintenance_tasks: list[MaintenanceTask] = Field(default_factory=list)

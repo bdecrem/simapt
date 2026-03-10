@@ -51,3 +51,7 @@ export async function advanceDay() {
 export async function makeChoice(choiceId) {
   return request('/scenario/choose', 'POST', { choice_id: choiceId });
 }
+
+export async function fixTask(taskId) {
+  return request('/game/fix-task', 'POST', { task_id: taskId });
+}

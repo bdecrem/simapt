@@ -15,6 +15,7 @@ export const gameState = writable({
   log: [],
   phase: 'menu', // 'menu' | 'playing' | 'won' | 'lost'
   next_scenario_day: 3,
+  maintenance_tasks: [],
 });
 
 export const occupancy = derived(gameState, $g =>

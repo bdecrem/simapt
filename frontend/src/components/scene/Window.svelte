@@ -116,6 +116,15 @@
     border-color: #0e0a06;
   }
 
+  /* Animate when a window transitions from boarded to another state */
+  .window:not(.boarded) {
+    animation: unit-unlock 0.6s ease-out;
+  }
+  @keyframes unit-unlock {
+    0% { filter: brightness(2); box-shadow: 0 0 20px rgba(212, 136, 42, 0.6); }
+    100% { filter: brightness(1); }
+  }
+
   .sil {
     position: absolute;
     z-index: 4;

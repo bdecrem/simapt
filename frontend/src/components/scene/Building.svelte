@@ -1,6 +1,7 @@
 <script>
   import { gameState } from '../../lib/stores/game.js';
   import Window from './Window.svelte';
+  import MaintenanceTasks from './MaintenanceTasks.svelte';
 
   let { onselectunit } = $props();
 
@@ -55,6 +56,7 @@
         {/each}
       </div>
     {/each}
+    <MaintenanceTasks />
   </div>
 
   <!-- Entrance -->
